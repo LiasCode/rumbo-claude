@@ -96,7 +96,8 @@ model is reported to rumbo, which compacts it.
 
 The images of a tool's result, such as an image file rumbo's `read` shows or
 a screenshot of its computer tool, go to the model after the result's text,
-as image blocks of the result.
+as image blocks of the result. Those a person gives with a task, or with
+what they tell a run, go before their words, as the API advises.
 
 Tools keep their whole JSON Schema, `$defs`, unions, and
 `additionalProperties` included. The context's size is asked of the API for

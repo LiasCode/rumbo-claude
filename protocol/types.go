@@ -55,7 +55,7 @@ const (
 
 // Block is one piece of message content.
 //
-//   - text: Text.
+//   - text: Text, and in a user message the Images the person gave with it.
 //   - tool_call: ID, Name, Args (assistant only).
 //   - tool_result: ID of the call it answers, Text, IsError, and the Images
 //     it shows, if any (user only).

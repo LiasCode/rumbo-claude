@@ -366,7 +366,15 @@ func blocks(message protocol.Message) ([]sdk.ContentBlockParamUnion, error) {
 	for _, block := range message.Content {
 		switch block.Type {
 		case protocol.BlockText:
-			out = append(out, sdk.NewTextBlock(block.Text))
+			// The images a person gave come before their words, as the API
+			// advises; an empty text, with images alone, is not sent.
+			for _, image := range block.Images {
+				out = append(out, sdk.ContentBlockParamUnion{OfImage: imageParam(image)})
+			}
+
+			if block.Text != "" || len(block.Images) == 0 {
+				out = append(out, sdk.NewTextBlock(block.Text))
+			}
 
 		case protocol.BlockToolCall:
 			// The API only accepts an object here, whatever the model sent.
@@ -401,15 +409,21 @@ func toolResult(block protocol.Block) sdk.ContentBlockParamUnion {
 	result := sdk.NewToolResultBlock(block.ID, block.Text, block.IsError)
 
 	for _, image := range block.Images {
-		source := sdk.Base64ImageSourceParam{
-			Data:      base64.StdEncoding.EncodeToString(image.Data),
-			MediaType: sdk.Base64ImageSourceMediaType(image.MediaType),
-		}
-		content := sdk.ToolResultBlockParamContentUnion{OfImage: &sdk.ImageBlockParam{Source: sdk.ImageBlockParamSourceUnion{OfBase64: &source}}}
+		content := sdk.ToolResultBlockParamContentUnion{OfImage: imageParam(image)}
 		result.OfToolResult.Content = append(result.OfToolResult.Content, content)
 	}
 
 	return result
+}
+
+// imageParam converts an image, which goes to the API as base64.
+func imageParam(image protocol.Image) *sdk.ImageBlockParam {
+	source := sdk.Base64ImageSourceParam{
+		Data:      base64.StdEncoding.EncodeToString(image.Data),
+		MediaType: sdk.Base64ImageSourceMediaType(image.MediaType),
+	}
+
+	return &sdk.ImageBlockParam{Source: sdk.ImageBlockParamSourceUnion{OfBase64: &source}}
 }
 
 func result(message sdk.Message) protocol.CompleteResult {

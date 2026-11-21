@@ -52,3 +52,25 @@ func TestAToolResultShowsItsImagesAfterItsText(t *testing.T) {
 		t.Fatalf("the protocol's field reached the API: %s", sent)
 	}
 }
+
+// A person's images come before their words, and images alone send no
+// empty text, which the API refuses.
+func TestAPersonsImagesComeBeforeTheirWords(t *testing.T) {
+	image := protocol.Image{MediaType: "image/png", Data: []byte("png bytes")}
+
+	for text, want := range map[string]string{
+		"what is this?": `[{"source":{"data":"cG5nIGJ5dGVz","media_type":"image/png","type":"base64"},"type":"image"},{"text":"what is this?","type":"text"}]`,
+		"":              `[{"source":{"data":"cG5nIGJ5dGVz","media_type":"image/png","type":"base64"},"type":"image"}]`,
+	} {
+		message := protocol.Message{Role: protocol.RoleUser, Content: []protocol.Block{{Type: protocol.BlockText, Text: text, Images: []protocol.Image{image}}}}
+		converted, err := blocks(message)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if sent, _ := json.Marshal(converted); string(sent) != want {
+			t.Errorf("text %q sent %s\nwant %s", text, sent, want)
+		}
+	}
+}
