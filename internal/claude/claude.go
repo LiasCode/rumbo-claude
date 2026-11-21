@@ -4,6 +4,7 @@ package claude
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -375,7 +376,7 @@ func blocks(message protocol.Message) ([]sdk.ContentBlockParamUnion, error) {
 			out = append(out, sdk.NewToolUseBlock(block.ID, input, toClaudeName(block.Name)))
 
 		case protocol.BlockToolResult:
-			out = append(out, sdk.NewToolResultBlock(block.ID, block.Text, block.IsError))
+			out = append(out, toolResult(block))
 
 		case protocol.BlockOpaque:
 			// Opaque data left by another provider is not ours to read; it
@@ -393,6 +394,22 @@ func blocks(message protocol.Message) ([]sdk.ContentBlockParamUnion, error) {
 	}
 
 	return out, nil
+}
+
+// toolResult converts a tool's result: its text, then the images it shows.
+func toolResult(block protocol.Block) sdk.ContentBlockParamUnion {
+	result := sdk.NewToolResultBlock(block.ID, block.Text, block.IsError)
+
+	for _, image := range block.Images {
+		source := sdk.Base64ImageSourceParam{
+			Data:      base64.StdEncoding.EncodeToString(image.Data),
+			MediaType: sdk.Base64ImageSourceMediaType(image.MediaType),
+		}
+		content := sdk.ToolResultBlockParamContentUnion{OfImage: &sdk.ImageBlockParam{Source: sdk.ImageBlockParamSourceUnion{OfBase64: &source}}}
+		result.OfToolResult.Content = append(result.OfToolResult.Content, content)
+	}
+
+	return result
 }
 
 func result(message sdk.Message) protocol.CompleteResult {

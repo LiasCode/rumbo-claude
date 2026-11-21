@@ -57,7 +57,8 @@ const (
 //
 //   - text: Text.
 //   - tool_call: ID, Name, Args (assistant only).
-//   - tool_result: ID of the call it answers, Text, IsError (user only).
+//   - tool_result: ID of the call it answers, Text, IsError, and the Images
+//     it shows, if any (user only).
 //   - opaque: Data the provider needs back verbatim on later requests, such as
 //     signed reasoning. The host stores and replays it without reading it.
 type Block struct {
@@ -67,7 +68,16 @@ type Block struct {
 	Name    string          `json:"name,omitempty"`
 	Args    json.RawMessage `json:"args,omitempty"`
 	IsError bool            `json:"is_error,omitempty"`
+	Images  []Image         `json:"images,omitempty"`
 	Data    json.RawMessage `json:"data,omitempty"`
+}
+
+// Image is a picture a tool result shows the model, such as a screenshot.
+// Data is the encoded file, base64 in JSON, and MediaType says its format:
+// image/png, image/jpeg, image/gif, or image/webp.
+type Image struct {
+	MediaType string `json:"media_type"`
+	Data      []byte `json:"data"`
 }
 
 // Message is one turn of the conversation.
