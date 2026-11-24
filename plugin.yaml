@@ -1,0 +1,9 @@
+# rumbo-claude as a rumbo plugin: rumbo builds it from this source where it
+# is added, so it needs Go (see go.mod) on that machine, and nothing else.
+name: claude
+description: A provider that uses a Claude Pro or Max subscription. Not an official Anthropic integration; read the README before using it.
+build: [go, build, -buildvcs=false, -o, bin/rumbo-claude, .]
+
+providers:
+  claude:
+    command: ["{plugin}/bin/rumbo-claude"]

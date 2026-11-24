@@ -7,11 +7,31 @@ registered by itself, and imports none of rumbo's `internal` packages: it
 carries a copy of rumbo's protocol code, so it builds without rumbo's
 repository.
 
-## Build and register
+## Install
 
 It needs Go 1.27.3 or later, on Linux or macOS: it locks its credentials
 with `flock`, which Windows does not have. It has been used on Linux; it
 builds for macOS, where it has not been run yet.
+
+It is a rumbo plugin, `claude`, which brings the provider `claude`. With
+rumbo 0.9.0 or later, which builds a plugin where it is added:
+
+```sh
+rumbo plugin add <address of this repository>   # or the path of a copy of it
+```
+
+rumbo copies the repository, builds it with Go (`plugin.yaml` says how),
+and starts the provider, which is the test that it works. `rumbo plugin
+update claude` brings it up to date and builds it again; `rumbo plugin rm
+claude` takes it out. Your sign-in is kept apart, and stays.
+
+If you registered it by hand before, as `claude`, the plugin is refused
+while that registration is there. Take out the line `command:` under
+`providers:`, `claude:` in rumbo's `config.yaml`, and add the plugin: the
+model and the options you set for it are kept, and apply to the plugin's.
+`rumbo provider rm claude` works too, but takes those with it.
+
+Without plugins, build it and register it yourself:
 
 ```sh
 # From the rumbo-claude directory:
