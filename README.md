@@ -9,9 +9,9 @@ repository.
 
 ## Install
 
-It needs Go 1.27.3 or later, on Linux or macOS: it locks its credentials
-with `flock`, which Windows does not have. It has been used on Linux; it
-builds for macOS, where it has not been run yet.
+It needs Go 1.27.3 or later, on Linux, macOS, or Windows. It has been used
+on Linux only; it builds for macOS and Windows, where it has not been run
+yet.
 
 It is a rumbo plugin, `claude`, which brings the provider `claude`. With
 rumbo 0.9.0 or later, which builds a plugin where it is added:
@@ -34,8 +34,8 @@ model and the options you set for it are kept, and apply to the plugin's.
 Without plugins, build it and register it yourself:
 
 ```sh
-# From the rumbo-claude directory:
-go build -buildvcs=false -o rumbo-claude .
+# From the rumbo-claude directory; on Windows it writes rumbo-claude.exe:
+go build -buildvcs=false .
 rumbo provider add claude "$PWD/rumbo-claude"
 ```
 
@@ -65,9 +65,11 @@ opened for you. pi's alternative, an HTTP callback, is not implemented.
 
 - Tokens are kept in `$XDG_CONFIG_HOME/rumbo-claude/claude.json`, or in
   `~/.config/rumbo-claude/claude.json` when that variable is not set, and in
-  `~/Library/Application Support/rumbo-claude/claude.json` on macOS.
+  `~/Library/Application Support/rumbo-claude/claude.json` on macOS, and
+  in `%AppData%\rumbo-claude\claude.json` on Windows.
 - The directory is private (`0700`), and so is the file (`0600`), which is
-  written atomically.
+  written atomically. Windows has no such modes; there the profile's own
+  permissions keep it.
 - A token is renewed five minutes before it expires, and renewed and the
   request retried once when the API rejects it with HTTP 401. A file lock,
   which a cancel interrupts, coordinates the processes, so one reuses a
@@ -163,7 +165,7 @@ diff ../rumbo/protocol/serve.go protocol/serve.go
 gofmt -l .
 go vet ./...
 go test -race ./...
-go build -buildvcs=false -o rumbo-claude .
+go build -buildvcs=false .
 ```
 
 The tests call no outside service: they run against local HTTP servers, and

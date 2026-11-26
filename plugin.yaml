@@ -2,7 +2,9 @@
 # is added, so it needs Go (see go.mod) on that machine, and nothing else.
 name: claude
 description: A provider that uses a Claude Pro or Max subscription. Not an official Anthropic integration; read the README before using it.
-build: [go, build, -buildvcs=false, -o, bin/rumbo-claude, .]
+# Built into a directory, Go names the program rumbo-claude, and
+# rumbo-claude.exe on Windows, which runs only a program with its extension.
+build: [go, build, -buildvcs=false, -o, bin/, .]
 
 providers:
   claude:

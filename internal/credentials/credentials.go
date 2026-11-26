@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"syscall"
 	"time"
 )
 
@@ -92,24 +91,26 @@ func (s Store) Locked(ctx context.Context, do func() error) error {
 		return err
 	}
 
+	// Closing the file releases the lock.
 	defer lock.Close()
 
 	for {
-		err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
-		if err == nil {
-			break
-		}
-		if !errors.Is(err, syscall.EWOULDBLOCK) && !errors.Is(err, syscall.EINTR) {
+		locked, err := tryLock(lock)
+
+		if err != nil {
 			return err
 		}
+
+		if locked {
+			break
+		}
+
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-time.After(25 * time.Millisecond):
 		}
 	}
-
-	defer syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
 
 	if err := ctx.Err(); err != nil {
 		return err
